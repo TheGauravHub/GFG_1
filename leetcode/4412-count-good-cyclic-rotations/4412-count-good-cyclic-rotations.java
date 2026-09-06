@@ -33,3 +33,7 @@ class Solution {
         return ans;
     }
 }
+// Take one element out of the first half  -> nums[i]
+// Put one new element into the first half -> nums[mid]
+
+// Adjust both sums accordingly.
