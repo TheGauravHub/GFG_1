@@ -2,55 +2,66 @@ import java.util.*;
 
 class Solution {
     public int minCost(int[][] grid, int k) {
+
         int n = grid.length;
         int m = grid[0].length;
 
-        long INF = Long.MAX_VALUE / 4;
-
-        long[][][][] dist = new long[n][m][k + 1][5];
+        int[][][][] dist = new int[n][m][4][k + 1];
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
-                for (int t = 0; t <= k; t++) {
-                    Arrays.fill(dist[i][j][t], INF);
+                for (int d = 0; d < 4; d++) {
+                    Arrays.fill(dist[i][j][d], Integer.MAX_VALUE);
                 }
             }
         }
 
-        PriorityQueue<long[]> pq =
-                new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
+        // {row, col, dir, turns, cost}
+        PriorityQueue<int[]> pq =
+                new PriorityQueue<>((a, b) -> Integer.compare(a[4], b[4]));
 
-        // cost,row,col,turns,lastDir
-        dist[0][0][0][4] = grid[0][0];
-        pq.offer(new long[]{grid[0][0], 0, 0, 0, 4});
+        for (int d = 0; d < 4; d++) {
+            pq.offer(new int[]{0, 0, d, 0, grid[0][0]});
+            dist[0][0][d][0] = grid[0][0];
+        }
 
-        int[] dx = {-1, 1, 0, 0};
-        int[] dy = {0, 0, -1, 1};
+        int[][] dir = {
+                {1, 0},   // down
+                {-1, 0},  // up
+                {0, -1},  // left
+                {0, 1}    // right
+        };
 
         while (!pq.isEmpty()) {
-            long[] cur = pq.poll();
 
-            long cost = cur[0];
-            int x = (int) cur[1];
-            int y = (int) cur[2];
-            int turns = (int) cur[3];
-            int dir = (int) cur[4];
+            int[] cur = pq.poll();
 
-            if (cost != dist[x][y][turns][dir]) {
+            int row = cur[0];
+            int col = cur[1];
+            int lastDir = cur[2];
+            int turns = cur[3];
+            int cost = cur[4];
+
+            if (cost > dist[row][col][lastDir][turns]) {
                 continue;
             }
 
-            for (int ndir = 0; ndir < 4; ndir++) {
-                int nx = x + dx[ndir];
-                int ny = y + dy[ndir];
+            if (row == n - 1 && col == m - 1) {
+                return cost;
+            }
 
-                if (nx < 0 || nx >= n || ny < 0 || ny >= m) {
+            for (int ndir = 0; ndir < 4; ndir++) {
+
+                int nr = row + dir[ndir][0];
+                int nc = col + dir[ndir][1];
+
+                if (nr < 0 || nr >= n || nc < 0 || nc >= m) {
                     continue;
                 }
 
                 int newTurns = turns;
 
-                if (dir != 4 && dir != ndir) {
+                if (ndir != lastDir) {
                     newTurns++;
                 }
 
@@ -58,29 +69,17 @@ class Solution {
                     continue;
                 }
 
-                long newCost = cost + grid[nx][ny];
+                int newCost = cost + grid[nr][nc];
 
-                if (newCost < dist[nx][ny][newTurns][ndir]) {
-                    dist[nx][ny][newTurns][ndir] = newCost;
-                    pq.offer(new long[]{
-                            newCost,
-                            nx,
-                            ny,
-                            newTurns,
-                            ndir
-                    });
+                if (newCost < dist[nr][nc][ndir][newTurns]) {
+
+                    dist[nr][nc][ndir][newTurns] = newCost;
+
+                    pq.offer(new int[]{nr,nc,ndir,newTurns,newCost});
                 }
             }
         }
 
-        long ans = INF;
-
-        for (int t = 0; t <= k; t++) {
-            for (int dir = 0; dir < 5; dir++) {
-                ans = Math.min(ans, dist[n - 1][m - 1][t][dir]);
-            }
-        }
-
-        return ans == INF ? -1 : (int) ans;
+        return -1;
     }
 }
