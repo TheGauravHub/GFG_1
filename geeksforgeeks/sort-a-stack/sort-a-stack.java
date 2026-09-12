@@ -1,0 +1,2 @@
+            st.push(ans[i]);
+
